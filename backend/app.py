@@ -65,8 +65,8 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("🏥 PharmaCare Backend API (Python Only)")
     print("=" * 60)
-    print(f"📍 Server: http://0.0.0.0:5000")
-    print(f"🔗 Health: http://0.0.0.0:5000/health")
+    print("📍 Server: http://0.0.0.0:5000")
+    print("🔗 Health: http://0.0.0.0:5000/health")
     print(f"🤖 AI Model: {Config.OLLAMA_MODEL}")
     print("=" * 60 + "\n")
 
