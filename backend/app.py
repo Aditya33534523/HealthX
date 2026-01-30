@@ -3,6 +3,8 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from routes.chat import chat_bp
 from routes.drugs import drugs_bp
+from routes.whatsapp import whatsapp_bp
+from routes.users import users_bp
 from utils.db_init import initialize_drug_database
 from utils.ollama_client import OllamaClient
 
@@ -27,6 +29,8 @@ else:
 # Register blueprints
 app.register_blueprint(chat_bp, url_prefix="/api")
 app.register_blueprint(drugs_bp, url_prefix="/api")
+app.register_blueprint(whatsapp_bp, url_prefix="/api")
+app.register_blueprint(users_bp, url_prefix="/api")
 
 
 @app.route("/health", methods=["GET"])
@@ -56,6 +60,9 @@ def home():
                 "chat": "/api/chat",
                 "drugs": "/api/drugs",
                 "banned_drugs": "/api/banned-drugs",
+                "whatsapp_send": "/api/whatsapp/send",
+                "whatsapp_broadcast": "/api/whatsapp/broadcast-safety-alert",
+                "whatsapp_subscribe": "/api/whatsapp/subscribe",
             },
         }
     ), 200
@@ -68,6 +75,7 @@ if __name__ == "__main__":
     print("📍 Server: http://0.0.0.0:5000")
     print("🔗 Health: http://0.0.0.0:5000/health")
     print(f"🤖 AI Model: {Config.OLLAMA_MODEL}")
+    print("💬 WhatsApp: Enabled (if configured)")
     print("=" * 60 + "\n")
 
     app.run(host="0.0.0.0", port=5000, debug=(Config.FLASK_ENV == "development"))
