@@ -1,0 +1,6 @@
+.env
+# Don't ignore .env.example (documentation of sample variables)
+__pycache__/
+*.pyc
+venv/
+.DS_Store
