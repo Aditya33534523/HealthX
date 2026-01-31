@@ -2,10 +2,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from models.database import chat_history_collection, drugs_collection
-from utils.ollama_client import OllamaClient
+from utils.gemini_client import GeminiClient
 
 chat_bp = Blueprint("chat", __name__)
-ollama = OllamaClient()
+gemini = GeminiClient()
 
 
 def find_mentioned_drug(query):
@@ -48,7 +48,7 @@ Interactions: {", ".join(drug["interactions"])}
 
 @chat_bp.route("/chat", methods=["POST"])
 def process_chat():
-    """Process chat message"""
+    """Process chat message with Gemini AI"""
     try:
         data = request.json
         user_message = data.get("message", "")
@@ -57,7 +57,7 @@ def process_chat():
         if not user_message:
             return jsonify({"success": False, "error": "Message is required"}), 400
 
-        # Save user message
+        # Save user message to database
         chat_history_collection.insert_one(
             {
                 "user_id": user_id,
@@ -67,7 +67,7 @@ def process_chat():
             }
         )
 
-        # Get conversation history
+        # Get conversation history from database
         history = list(
             chat_history_collection.find(
                 {"user_id": user_id}, {"_id": 0, "message": 1, "type": 1}
@@ -78,7 +78,7 @@ def process_chat():
 
         history.reverse()
 
-        # Build context
+        # Build context from conversation history
         conversation_context = "\n".join(
             [
                 f"{'User' if msg['type'] == 'user' else 'Assistant'}: {msg['message']}"
@@ -90,24 +90,31 @@ def process_chat():
         mentioned_drug = find_mentioned_drug(user_message)
         drug_context = get_drug_context(mentioned_drug) if mentioned_drug else ""
 
-        # System prompt
-        system_prompt = """You are PharmaCare AI, a pharmaceutical assistant.
+        # System prompt for pharmaceutical assistant
+        system_prompt = """You are PharmaCare AI, a knowledgeable pharmaceutical assistant.
 
-Your role:
-- Provide accurate medication information
-- Warn about drug interactions and side effects
-- Always advise consulting healthcare professionals
-- Be friendly and helpful
+Your responsibilities:
+- Provide accurate, evidence-based medication information
+- Explain drug interactions, side effects, and safety alerts clearly
+- Always recommend consulting healthcare professionals for medical decisions
+- Be empathetic and patient-focused
+- Cite withdrawal alerts and government status when relevant
 
-Important: This is educational information only."""
+Important guidelines:
+- This is educational information only, not medical advice
+- Always encourage users to consult their doctor or pharmacist
+- Be clear about drug safety concerns and contraindications
+- Use simple, understandable language
 
-        # Generate response
+Keep responses concise and focused on the user's question."""
+
+        # Generate response using Gemini
         full_context = f"{drug_context}\n\nRecent conversation:\n{conversation_context}"
-        response = ollama.generate(
+        response = gemini.generate(
             prompt=user_message, system_prompt=system_prompt, context=full_context
         )
 
-        # Save bot response
+        # Save bot response to database
         chat_history_collection.insert_one(
             {
                 "user_id": user_id,
@@ -130,14 +137,14 @@ Important: This is educational information only."""
             {
                 "success": False,
                 "error": str(e),
-                "response": "I apologize, but I encountered an error.",
+                "response": "I apologize, but I encountered an error processing your request.",
             }
         ), 500
 
 
 @chat_bp.route("/chat/history/<user_id>", methods=["GET"])
 def get_chat_history(user_id):
-    """Get chat history"""
+    """Get chat history from database"""
     try:
         limit = request.args.get("limit", 50, type=int)
 
