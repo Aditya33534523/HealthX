@@ -19,8 +19,28 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
-  # Backend API (Python Flask with Gemini)
+  # Ollama AI Service - FIXED VERSION
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pharmacare-ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - pharmacare-network
+    # Simplified healthcheck - just check if port is responding
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Backend API (Python Flask with Ollama)
   backend:
     build:
       context: ./backend
@@ -30,17 +50,19 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - MONGO_URI=mongodb://admin:pharmacare123@mongodb:27017/pharma_chatbot?authSource=admin
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GEMINI_MODEL=gemini-1.5-flash
-      - FLASK_ENV=production
+      - MONGO_URI=${MONGO_URI}
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=kimi-k2.5:cloud
+      - FLASK_ENV=${FLASK_ENV}
       - SECRET_KEY=${SECRET_KEY}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
     depends_on:
       mongodb:
         condition: service_healthy
+      ollama:
+        condition: service_started  # Changed from service_healthy
     networks:
       - pharmacare-network
     healthcheck:
@@ -48,8 +70,9 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 40s
 
-  # Frontend (Python Flask with OAuth)
+  # Frontend (Python Flask)
   frontend:
     build:
       context: ./frontend
@@ -60,10 +83,8 @@ services:
       - "3000:3000"
     environment:
       - BACKEND_URL=http://backend:5000
-      - FLASK_ENV=production
+      - FLASK_ENV=${FLASK_ENV}
       - SECRET_KEY=${SECRET_KEY}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       - backend
     networks:
@@ -75,4 +96,6 @@ networks:
 
 volumes:
   mongodb_data:
+    driver: local
+  ollama_data:
     driver: local

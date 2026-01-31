@@ -2,10 +2,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from models.database import chat_history_collection, drugs_collection
-from utils.gemini_client import GeminiClient
+from utils.ollama_client import OllamaClient
 
 chat_bp = Blueprint("chat", __name__)
-gemini = GeminiClient()
+ollama = OllamaClient()
 
 
 def find_mentioned_drug(query):
@@ -48,7 +48,7 @@ Interactions: {", ".join(drug["interactions"])}
 
 @chat_bp.route("/chat", methods=["POST"])
 def process_chat():
-    """Process chat message with Gemini AI"""
+    """Process chat message with Ollama AI"""
     try:
         data = request.json
         user_message = data.get("message", "")
@@ -108,9 +108,9 @@ Important guidelines:
 
 Keep responses concise and focused on the user's question."""
 
-        # Generate response using Gemini
+        # Generate response using Ollama
         full_context = f"{drug_context}\n\nRecent conversation:\n{conversation_context}"
-        response = gemini.generate(
+        response = ollama.generate(
             prompt=user_message, system_prompt=system_prompt, context=full_context
         )
 
