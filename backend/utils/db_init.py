@@ -1,6 +1,6 @@
 from datetime import datetime
-
-from models.database import drugs_collection
+from models.database import drugs_collection, db
+from models.user import create_user
 
 
 def initialize_drug_database():
@@ -79,3 +79,10 @@ def initialize_drug_database():
         print("✅ Sample drug data inserted!")
     else:
         print("ℹ️  Drug database already initialized")
+
+    # Initialize Admin User
+    if not db.users.find_one({"is_admin": True}):
+        create_user("admin@pharmacare.local", "admin123", is_admin=True)
+        print("✅ Admin user created: admin@pharmacare.local / admin123")
+    else:
+        print("ℹ️  Admin user already exists")

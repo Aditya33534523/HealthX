@@ -1,89 +1,89 @@
-from datetime import datetime
-from flask import Blueprint, jsonify, request, session
-from models.database import users_collection
-from config import Config
+from flask import Blueprint, request, jsonify, session
+from models.user import create_user, authenticate_user, create_or_get_google_user
 import requests
 
-auth_bp = Blueprint("auth", __name__)
+auth_bp = Blueprint('auth', __name__)
 
+@auth_bp.route("/register", methods=["POST"])
+def register():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+    if not email or not password:
+        return jsonify({"success": False, "error": "Email and password required"}), 400
+    
+    if create_user(email, password):
+        return jsonify({"success": True, "message": "Registered successfully. Please login."})
+    return jsonify({"success": False, "error": "Email already registered"}), 409
 
-# Google OAuth
-@auth_bp.route("/auth/google", methods=["GET"])
-def google_login():
-    """Initiate Google OAuth"""
-    google_auth_url = (
-        f"https://accounts.google.com/o/oauth2/v2/auth?"
-        f"client_id={Config.GOOGLE_CLIENT_ID}&"
-        f"redirect_uri={Config.GOOGLE_REDIRECT_URI}&"
-        f"response_type=code&"
-        f"scope=openid email profile"
-    )
-    return jsonify({"auth_url": google_auth_url})
+@auth_bp.route("/login", methods=["POST"])
+def login():
+    data = request.json
+    user = authenticate_user(data.get("email"), data.get("password"))
+    if user:
+        session["user_id"] = str(user["_id"])
+        session["is_admin"] = user.get("is_admin", False)
+        
+        # Log the login
+        from models.log import log_login
+        log_login(session["user_id"], request.remote_addr)
+        
+        return jsonify({"success": True, "is_admin": session["is_admin"]})
+    return jsonify({"success": False, "error": "Invalid credentials"}), 401
 
-
-@auth_bp.route("/auth/google/callback", methods=["GET", "POST"])
-def google_callback():
-    """Handle Google OAuth callback"""
+@auth_bp.route("/google-auth", methods=["POST"])
+def google_auth():
+    """Handle Google OAuth authentication"""
+    data = request.json
+    credential = data.get("credential")
+    
+    if not credential:
+        return jsonify({"success": False, "error": "No credential provided"}), 400
+    
     try:
-        code = request.args.get("code")
+        # Verify the Google ID token
+        google_verify_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}"
+        response = requests.get(google_verify_url, timeout=10)
         
-        # Exchange code for token
-        token_response = requests.post(
-            "https://oauth2.googleapis.com/token",
-            data={
-                "code": code,
-                "client_id": Config.GOOGLE_CLIENT_ID,
-                "client_secret": Config.GOOGLE_CLIENT_SECRET,
-                "redirect_uri": Config.GOOGLE_REDIRECT_URI,
-                "grant_type": "authorization_code",
-            },
-        )
+        if response.status_code != 200:
+            return jsonify({"success": False, "error": "Invalid Google token"}), 401
         
-        token_data = token_response.json()
-        access_token = token_data.get("access_token")
+        token_info = response.json()
         
-        # Get user info
-        user_response = requests.get(
-            "https://www.googleapis.com/oauth2/v2/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"},
-        )
+        # Verify the token is for our app
+        expected_client_id = "486846987530-u7jqcgm81trolhe2pg184ss53d8ordmh.apps.googleusercontent.com"
+        if token_info.get("aud") != expected_client_id:
+            return jsonify({"success": False, "error": "Token not for this application"}), 401
         
-        user_data = user_response.json()
+        # Get user info from token
+        email = token_info.get("email")
+        google_id = token_info.get("sub")
         
-        # Save or update user in database
-        email = user_data.get("email")
-        name = user_data.get("name")
-        picture = user_data.get("picture")
+        if not email:
+            return jsonify({"success": False, "error": "Email not provided by Google"}), 400
         
-        users_collection.update_one(
-            {"email": email},
-            {
-                "$set": {
-                    "name": name,
-                    "email": email,
-                    "picture": picture,
-                    "auth_provider": "google",
-                    "last_login": datetime.utcnow(),
-                }
-            },
-            upsert=True,
-        )
+        # Create or get user
+        user = create_or_get_google_user(email, google_id)
         
-        return jsonify({
-            "success": True,
-            "user": {
-                "email": email,
-                "name": name,
-                "picture": picture,
-            }
-        })
+        if user:
+            session["user_id"] = str(user["_id"])
+            session["is_admin"] = user.get("is_admin", False)
+            
+            # Log the login
+            from models.log import log_login
+            log_login(session["user_id"], request.remote_addr)
+            
+            return jsonify({"success": True, "is_admin": session["is_admin"]})
         
+        return jsonify({"success": False, "error": "Failed to create user account"}), 500
+        
+    except requests.RequestException as e:
+        return jsonify({"success": False, "error": "Failed to verify Google token"}), 500
     except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
+        print(f"Google auth error: {str(e)}")
+        return jsonify({"success": False, "error": "Authentication failed"}), 500
 
-
-@auth_bp.route("/auth/logout", methods=["POST"])
+@auth_bp.route("/logout", methods=["POST"])
 def logout():
-    """Logout user"""
     session.clear()
-    return jsonify({"success": True, "message": "Logged out successfully"})
+    return jsonify({"success": True})

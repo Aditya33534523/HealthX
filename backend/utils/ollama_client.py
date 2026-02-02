@@ -5,14 +5,17 @@ from config import Config
 class OllamaClient:
     def __init__(self):
         self.host = Config.OLLAMA_HOST
-        self.model = Config.OLLAMA_MODEL
-        print(f"✅ Ollama initialized: {self.host} with model {self.model}")
+        self.model = "qwen2.5:0.5b"  # ← force it here temporarily
+        print(f"✅ Ollama initialized: {self.host} with model {self.model} (HARDCODED)")
 
     def generate(self, prompt, system_prompt="", context=""):
         """Generate response using Ollama"""
         try:
             full_prompt = f"{system_prompt}\n\nContext: {context}\n\nUser Query: {prompt}\n\nAssistant:"
-            
+            print("DEBUG OLLAMA REQUEST:")
+            print(f"  URL: {self.host}/api/generate")
+            print(f"  Model being sent: {self.model}")
+            print(f"  Prompt starts with: {full_prompt[:150]}...")
             response = requests.post(
                 f"{self.host}/api/generate",
                 json={
@@ -47,3 +50,4 @@ class OllamaClient:
             return response.status_code == 200
         except:
             return False
+        

@@ -1,76 +1,30 @@
-from datetime import datetime
-from flask import Blueprint, jsonify, request
-from models.database import users_collection
+from flask import Blueprint, jsonify, session
+from models.user import get_user_chats  # <-- FIXED
 
-users_bp = Blueprint("users", __name__)
+user_bp = Blueprint('user', __name__)
 
+@user_bp.route("/history", methods=["GET"])
+def history():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+    chats = get_user_chats(user_id)
+    return jsonify({"success": True, "chats": chats})
 
-@users_bp.route("/users/register", methods=["POST"])
-def register_user():
-    """Register new user"""
-    try:
-        data = request.json
-        name = data.get("name")
-        email = data.get("email")
-        phone = data.get("phone")
-        whatsapp_alerts = data.get("whatsapp_alerts", False)
+@user_bp.route("/login-history", methods=["GET"])
+def login_history():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+    
+    from models.log import get_login_history
+    history = get_login_history(user_id)
+    return jsonify({"success": True, "history": history})
 
-        if not all([name, email, phone]):
-            return jsonify({
-                "success": False,
-                "error": "Name, email, and phone are required"
-            }), 400
-
-        # Check if user already exists
-        existing_user = users_collection.find_one({"email": email})
-        if existing_user:
-            return jsonify({
-                "success": False,
-                "error": "User already exists"
-            }), 409
-
-        # Create user
-        user_data = {
-            "name": name,
-            "email": email,
-            "phone": phone,
-            "whatsapp_alerts": whatsapp_alerts,
-            "created_at": datetime.utcnow()
-        }
-
-        users_collection.insert_one(user_data)
-
-        return jsonify({
-            "success": True,
-            "message": "User registered successfully"
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-
-@users_bp.route("/users/<email>", methods=["GET"])
-def get_user(email):
-    """Get user by email"""
-    try:
-        user = users_collection.find_one({"email": email}, {"_id": 0})
-        
-        if user:
-            return jsonify({
-                "success": True,
-                "user": user
-            }), 200
-        else:
-            return jsonify({
-                "success": False,
-                "error": "User not found"
-            }), 404
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+@user_bp.route("/user", methods=["GET"])
+def current_user():
+    return jsonify({
+        "success": True,
+        "logged_in": "user_id" in session,
+        "is_admin": session.get("is_admin", False)
+    })

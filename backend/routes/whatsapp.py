@@ -1,236 +1,47 @@
-from datetime import datetime
-from flask import Blueprint, jsonify, request
-from models.database import users_collection, drugs_collection
-from utils.whatsapp_service import WhatsAppService
+from flask import Blueprint, request, jsonify, session
+from models.log import log_whatsapp_message, get_whatsapp_messages
+from config import Config
 
-whatsapp_bp = Blueprint("whatsapp", __name__)
-whatsapp_service = WhatsAppService()
+whatsapp_bp = Blueprint('whatsapp', __name__)
 
-
-@whatsapp_bp.route("/whatsapp/send", methods=["POST"])
-def send_whatsapp_message():
-    """Send WhatsApp message to a single user"""
+@whatsapp_bp.route("/whatsapp/webhook", methods=["POST"])
+def whatsapp_webhook():
+    """Handle incoming WhatsApp messages from Twilio"""
     try:
-        data = request.json
-        phone = data.get("phone")
-        message = data.get("message")
-
-        if not phone or not message:
-            return jsonify({
-                "success": False,
-                "error": "Phone number and message are required"
-            }), 400
-
-        result = whatsapp_service.send_message(phone, message)
-        return jsonify(result), 200 if result["success"] else 500
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-
-@whatsapp_bp.route("/whatsapp/broadcast-safety-alert", methods=["POST"])
-def broadcast_safety_alert():
-    """Broadcast safety alert to all subscribed users"""
-    try:
-        data = request.json
-        drug_name = data.get("drug_name")
-        alert_message = data.get("alert_message")
-
-        if not drug_name or not alert_message:
-            return jsonify({
-                "success": False,
-                "error": "Drug name and alert message are required"
-            }), 400
-
-        # Get all users with phone numbers and alert subscription
-        users = list(users_collection.find(
-            {"phone": {"$exists": True, "$ne": ""}, "whatsapp_alerts": True},
-            {"phone": 1, "email": 1}
-        ))
-
-        if not users:
-            return jsonify({
-                "success": False,
-                "message": "No users subscribed to WhatsApp alerts"
-            }), 404
-
-        result = whatsapp_service.send_safety_broadcast(users, drug_name, alert_message)
+        # Twilio sends form-encoded data
+        sender = request.values.get('From', 'Unknown')
+        body = request.values.get('Body', '')
         
-        return jsonify(result), 200
-
+        if body:
+            log_whatsapp_message(sender, body, source="Twilio")
+            print(f"📩 WhatsApp received from {sender}: {body}")
+            
+            # Here you would typically reply using Twilio Client
+            # For now, we just acknowledge receipt
+            return str("PONG")
+            
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+        print(f"Error in webhook: {e}")
+        return str("Error"), 500
+    
+    return str("OK")
 
+@whatsapp_bp.route("/whatsapp/messages", methods=["GET"])
+def get_messages():
+    """Get all received WhatsApp messages (Admin only)"""
+    if not session.get("is_admin"):
+        return jsonify({"success": False, "error": "Unauthorized"}), 403
+    
+    messages = get_whatsapp_messages()
+    return jsonify({"success": True, "messages": messages})
 
-@whatsapp_bp.route("/whatsapp/send-drug-recall", methods=["POST"])
-def send_drug_recall():
-    """Send drug recall notification"""
-    try:
-        data = request.json
-        drug_name = data.get("drug_name")
-        reason = data.get("reason")
-
-        if not drug_name or not reason:
-            return jsonify({
-                "success": False,
-                "error": "Drug name and reason are required"
-            }), 400
-
-        users = list(users_collection.find(
-            {"phone": {"$exists": True, "$ne": ""}, "whatsapp_alerts": True},
-            {"phone": 1, "email": 1}
-        ))
-
-        if not users:
-            return jsonify({
-                "success": False,
-                "message": "No users subscribed to WhatsApp alerts"
-            }), 404
-
-        result = whatsapp_service.send_recall_notification(users, drug_name, reason)
-        
-        return jsonify(result), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-
-@whatsapp_bp.route("/whatsapp/send-drug-info", methods=["POST"])
-def send_drug_info():
-    """Send drug information via WhatsApp"""
-    try:
-        data = request.json
-        phone = data.get("phone")
-        drug_name = data.get("drug_name")
-
-        if not phone or not drug_name:
-            return jsonify({
-                "success": False,
-                "error": "Phone number and drug name are required"
-            }), 400
-
-        # Get drug information
-        drug = drugs_collection.find_one(
-            {"name": {"$regex": drug_name, "$options": "i"}},
-            {"_id": 0}
-        )
-
-        if not drug:
-            return jsonify({
-                "success": False,
-                "error": f"Drug '{drug_name}' not found"
-            }), 404
-
-        # Format drug information
-        message = f"""
-📋 *Drug Information*
-
-*Name:* {drug['name']}
-*Generic:* {drug['generic_name']}
-*Status:* {drug['government_status']['status']}
-
-⚠️ *Safety Alerts:*
-{chr(10).join('• ' + alert for alert in drug['safety_alerts'])}
-
-💊 *Side Effects:*
-{chr(10).join('• ' + alert for alert in drug['adr_alerts'])}
-
-🔄 *Interactions:*
-{', '.join(drug['interactions'])}
-
-⏰ *Timing:*
-{chr(10).join('• ' + time for time in drug['timing'])}
-
-For more details, visit PharmaCare portal.
-        """.strip()
-
-        result = whatsapp_service.send_message(phone, message)
-        return jsonify(result), 200 if result["success"] else 500
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-
-@whatsapp_bp.route("/whatsapp/subscribe", methods=["POST"])
-def subscribe_whatsapp():
-    """Subscribe user to WhatsApp alerts"""
-    try:
-        data = request.json
-        email = data.get("email")
-        phone = data.get("phone")
-
-        if not email or not phone:
-            return jsonify({
-                "success": False,
-                "error": "Email and phone number are required"
-            }), 400
-
-        # Update or create user with WhatsApp subscription
-        users_collection.update_one(
-            {"email": email},
-            {
-                "$set": {
-                    "phone": phone,
-                    "whatsapp_alerts": True,
-                    "subscribed_at": datetime.utcnow()
-                }
-            },
-            upsert=True
-        )
-
-        # Send confirmation message
-        confirmation = "✅ You've been subscribed to PharmaCare WhatsApp alerts. You'll receive important drug safety notifications."
-        whatsapp_service.send_message(phone, confirmation)
-
-        return jsonify({
-            "success": True,
-            "message": "Successfully subscribed to WhatsApp alerts"
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
-
-@whatsapp_bp.route("/whatsapp/unsubscribe", methods=["POST"])
-def unsubscribe_whatsapp():
-    """Unsubscribe user from WhatsApp alerts"""
-    try:
-        data = request.json
-        email = data.get("email")
-
-        if not email:
-            return jsonify({
-                "success": False,
-                "error": "Email is required"
-            }), 400
-
-        users_collection.update_one(
-            {"email": email},
-            {"$set": {"whatsapp_alerts": False}}
-        )
-
-        return jsonify({
-            "success": True,
-            "message": "Successfully unsubscribed from WhatsApp alerts"
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+# We'll use this for manual testing since we don't have a public URL for Twilio
+@whatsapp_bp.route("/whatsapp/test", methods=["POST"])
+def test_webhook():
+    """Manually test webhook logging"""
+    data = request.json
+    sender = data.get("sender", "Test User")
+    message = data.get("message", "Hello!")
+    
+    log_whatsapp_message(sender, message, source="Manual Test")
+    return jsonify({"success": True, "message": "Logged"})

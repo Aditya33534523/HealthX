@@ -34,7 +34,7 @@ services:
       - pharmacare-network
     # Simplified healthcheck - just check if port is responding
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434 || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:11434 || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -62,17 +62,17 @@ services:
       mongodb:
         condition: service_healthy
       ollama:
-        condition: service_started  # Changed from service_healthy
+        condition: service_started # Changed from service_healthy
     networks:
       - pharmacare-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # Frontend (Python Flask)
+  # Frontend (React + Vite)
   frontend:
     build:
       context: ./frontend
@@ -81,10 +81,11 @@ services:
     restart: always
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     environment:
-      - BACKEND_URL=http://backend:5000
-      - FLASK_ENV=${FLASK_ENV}
-      - SECRET_KEY=${SECRET_KEY}
+      - VITE_API_URL=http://localhost:5000/api
     depends_on:
       - backend
     networks:

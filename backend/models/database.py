@@ -1,36 +1,14 @@
-import time
-
-from config import Config
 from pymongo import MongoClient
+from config import Config
 
+client = MongoClient(Config.MONGO_URI)
+# This will get the database named in the connection string (pharma_chatbot)
+db = client.get_default_database()
 
-def get_database():
-    """Get MongoDB database connection with retry logic"""
-    max_retries = 5
-    retry_delay = 2
-
-    for attempt in range(max_retries):
-        try:
-            client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=5000)
-            client.admin.command("ping")
-            print("✅ MongoDB connection successful!")
-            return client["pharma_chatbot"]
-        except Exception as e:
-            if attempt < max_retries - 1:
-                print(
-                    f"⚠️  MongoDB connection attempt {attempt + 1} failed. Retrying in {retry_delay}s..."
-                )
-                time.sleep(retry_delay)
-            else:
-                print(f"❌ MongoDB connection failed after {max_retries} attempts: {e}")
-                raise
-
-
-# Initialize database
-db = get_database()
-
-# Collections
-drugs_collection = db["drugs"]
-chat_history_collection = db["chat_history"]
-reminders_collection = db["reminders"]
-users_collection = db["users"]
+# Export common collections for easy access
+drugs_collection = db.drugs
+users_collection = db.users
+chat_history = db.chat_history
+whatsapp_logs = db.whatsapp_logs
+login_logs = db.login_logs
+broadcast_history = db.broadcast_history
