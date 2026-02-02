@@ -1,5 +1,6 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import { LogOut, Map, History } from 'lucide-react';
+import { History, LogOut, Map } from 'lucide-react';
+import logo from '../assets/logo.jpg';
 import api from '../utils/api';
 
 const MainLayout = () => {
@@ -27,7 +28,7 @@ const MainLayout = () => {
             <header className="bg-slate-900/90 backdrop-blur-none sticky top-0 z-50 px-6 py-4 flex justify-between items-center text-white m-4 rounded-2xl shadow-lg border border-slate-700">
                 <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden">
-                        <img src="/logo.jpg" alt="Lifexia" className="w-full h-full object-cover" />
+                        <img src={logo} alt="Lifexia" className="w-full h-full object-cover" />
                     </div>
                     <div>
                         <h1 className="text-xl font-bold">Lifexia</h1>

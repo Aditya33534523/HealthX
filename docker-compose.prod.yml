@@ -1,0 +1,53 @@
+services:
+  # MongoDB Database (same as dev, but with persistent volumes)
+  mongodb:
+    image: mongo:7.0
+    container_name: healthx-mongodb-prod
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-healthx_secure_pass}
+      MONGO_INITDB_DATABASE: healthx_db
+    volumes:
+      - mongodb_prod_data:/data/db
+    networks:
+      - healthx-prod-network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: healthx-backend-prod
+    restart: always
+    environment:
+      - MONGO_URI=mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-healthx_secure_pass}@mongodb:27017/healthx_db?authSource=admin
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - CORS_ORIGIN=${FRONTEND_URL:-http://localhost}
+    depends_on:
+      - mongodb
+    networks:
+      - healthx-prod-network
+
+  # Frontend (Served via Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: healthx-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - healthx-prod-network
+
+networks:
+  healthx-prod-network:
+    driver: bridge
+
+volumes:
+  mongodb_prod_data:
+    driver: local
