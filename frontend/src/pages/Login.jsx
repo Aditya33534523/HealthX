@@ -39,19 +39,30 @@ const Login = () => {
 
     return (
         <div className="min-h-screen relative overflow-hidden flex flex-col font-['Outfit']">
-            {/* Dynamic Background */}
-            <div className="vibrant-bg" />
+            {/* Background Image - Pharmacy with floating pills */}
+            <div 
+                className="absolute inset-0 z-0"
+                style={{
+                    backgroundImage: 'url("/Gemini_Generated_Image_3usb2j3usb2j3usb.png")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat'
+                }}
+            />
+            
+            {/* Dark overlay for better contrast */}
+            <div className="absolute inset-0 bg-black/40 z-0" />
 
-            {/* Decorative Floating Pills (CSS-based) */}
+            {/* Decorative Floating Pills (matching the background theme) */}
             <div className="absolute top-[10%] left-[5%] w-16 h-8 bg-blue-500/20 rounded-full blur-xl animate-pulse float" style={{ animationDelay: '0s' }} />
             <div className="absolute top-[20%] right-[10%] w-12 h-24 bg-purple-500/20 rounded-full blur-xl animate-bounce float" style={{ animationDelay: '1s' }} />
             <div className="absolute bottom-[15%] left-[15%] w-20 h-10 bg-emerald-500/20 rounded-full blur-xl float" style={{ animationDelay: '2.5s' }} />
-            <div className="absolute top-[60%] right-[5%] w-16 h-16 bg-blue-400/10 rounded-full blur-2xl float" style={{ animationDuration: '8s' }} />
+            <div className="absolute top-[60%] right-[5%] w-16 h-16 bg-pink-400/10 rounded-full blur-2xl float" style={{ animationDuration: '8s' }} />
 
             {/* Header */}
             <header className="relative z-20 px-6 md:px-12 py-8 flex justify-between items-center">
                 <div className="flex items-center gap-4 group">
-                    <div className="p-2.5 glass-panel group-hover:scale-110 group-hover:rotate-6">
+                    <div className="p-2.5 glass-panel group-hover:scale-110 group-hover:rotate-6 transition-all">
                         <img
                             src="/logo.jpg"
                             alt="Lifexia"
@@ -67,15 +78,15 @@ const Login = () => {
                 </div>
                 <div className="hidden md:flex gap-6">
                     <button className="text-sm font-medium text-slate-300 hover:text-white transition-colors">How it works</button>
-                    <button className="text-sm font-medium dark-glass-btn px-6 py-2 rounded-full border border-white/10 hover:bg-white/5">Help</button>
+                    <button className="text-sm font-medium px-6 py-2 rounded-full border border-white/10 hover:bg-white/5 backdrop-blur-sm transition-all">Help</button>
                 </div>
             </header>
 
             {/* Login Form */}
             <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
-                <div className="relative glass-card p-10 md:p-14 w-full max-w-lg border-white/5 backdrop-blur-3xl bg-slate-950/40">
+                <div className="relative glass-card p-10 md:p-14 w-full max-w-lg border-white/5 backdrop-blur-3xl bg-slate-950/60">
                     <div className="absolute inset-0 bg-blue-900/20 blur-[120px] rounded-full" />
-                    <div className="flex flex-col items-center mb-10">
+                    <div className="relative flex flex-col items-center mb-10">
                         <div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center mb-6 border border-white/10 shadow-2xl shadow-blue-500/20 float">
                             <Activity size={40} className="text-blue-400" />
                         </div>
@@ -85,7 +96,7 @@ const Login = () => {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 relative">
                         <div className="space-y-2">
                             <label className="block text-slate-300 text-sm font-bold ml-1">Work Email</label>
                             <input
@@ -128,7 +139,7 @@ const Login = () => {
                         </button>
                     </form>
 
-                    <div className="mt-8 text-center">
+                    <div className="mt-8 text-center relative">
                         <p className="text-slate-400 text-sm">
                             {isRegister ? 'Already have an account? ' : "Don't have an account? "}
                             <button
@@ -144,11 +155,11 @@ const Login = () => {
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-8 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 grayscale opacity-50">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <footer className="relative z-10 py-8 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 backdrop-blur-sm">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     © 2026 lifexia intelligent systems
                 </p>
-                <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     <button className="hover:text-white transition-colors">Privacy</button>
                     <button className="hover:text-white transition-colors">Terms</button>
                     <button className="hover:text-white transition-colors">Clinical Ethics</button>
