@@ -142,7 +142,7 @@ Reason: {reason}
 
 For questions: Contact your healthcare provider
 
-PharmaCare Alert System
+Lifexia Alert System
         """.strip()
         
         return self.broadcast_alert(users, message)

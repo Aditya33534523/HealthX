@@ -1,5 +1,5 @@
-# HealthX
-# 🏥 PharmaCare - Python Only with Docker
+# Lifexia
+# 🏥 Lifexia - Python Only with Docker
 
 A complete pharmaceutical chatbot system built entirely with **Python** (no Node.js/React), featuring Flask backend and frontend, MongoDB, and Ollama AI integration.
 
@@ -151,13 +151,13 @@ pharmacare-python/
    **Windows (PowerShell):**
    ```powershell
    mkdir pharmacare-python
-   cd pharmacare-python
+   cd lifexia-python
    ```
 
    **Mac/Linux (Terminal):**
    ```bash
    mkdir pharmacare-python
-   cd pharmacare-python
+   cd lifexia-python
    ```
 
 2. **Create all files:**
@@ -199,7 +199,7 @@ When you open Docker Desktop, you'll see:
 
 #### Step 1: Navigate to Project
 ```bash
-cd pharmacare-python
+cd lifexia-python
 ```
 
 #### Step 2: Build and Start Services
@@ -233,7 +233,7 @@ docker compose up --build
 
 ```bash
 # Pull the AI model (400 MB download)
-docker exec -it pharmacare-ollama ollama pull qwen2.5:0.5b
+docker exec -it pharmacare-ollama ollama pull llama3.2
 ```
 
 **Output:**
@@ -341,7 +341,7 @@ In Docker Desktop:
 - Environment variables:
   - `MONGO_URI=mongodb://admin:pharmacare123@mongodb:27017/pharma_chatbot?authSource=admin`
   - `OLLAMA_HOST=http://ollama:11434`
-  - `OLLAMA_MODEL=qwen2.5:0.5b`
+  - `OLLAMA_MODEL=llama3.2`
 - Network: `pharmacare-network`
 
 **Frontend Container:**
@@ -356,7 +356,7 @@ In Docker Desktop:
 
 1. Click on **pharmacare-ollama** container
 2. Click **"Exec"** tab (terminal)
-3. Run: `ollama pull qwen2.5:0.5b`
+3. Run: `ollama pull llama3.2`
 
 ---
 
@@ -567,20 +567,20 @@ docker exec pharmacare-ollama ollama list
 
 **Pull model again:**
 ```bash
-docker exec -it pharmacare-ollama ollama pull qwen2.5:0.5b
+docker exec -it pharmacare-ollama ollama pull llama3.2
 ```
 
 ### Problem: Backend can't connect to MongoDB
 
 **Check MongoDB:**
 ```bash
-docker exec pharmacare-mongodb mongosh --eval "db.adminCommand('ping')"
+docker exec lifexia-mongodb mongosh --eval "db.adminCommand('ping')"
 ```
 
 **Restart MongoDB:**
 ```bash
-docker restart pharmacare-mongodb
-docker restart pharmacare-backend
+docker restart lifexia-mongodb
+docker restart lifexia-backend
 ```
 
 ### Problem: "No space left on device"
@@ -712,7 +712,7 @@ exit
 docker compose up --build
 
 # Pull AI model
-docker exec -it pharmacare-ollama ollama pull qwen2.5:0.5b
+docker exec -it pharmacare-ollama ollama pull llama3.2
 
 # Subsequent times
 docker compose up
@@ -763,7 +763,7 @@ docker system prune -a --volumes
 | MongoDB Image | ~700 MB | First `docker compose up` |
 | Ollama Image | ~1.5 GB | First `docker compose up` |
 | Python Image | ~150 MB | First `docker compose up` |
-| Qwen AI Model | ~400 MB | When you run `ollama pull` |
+| Llama 3.2 Model | ~2 GB | When you run `ollama pull` |
 | **Total** | **~2.75 GB** | **One-time download** |
 
 ---
@@ -773,7 +773,7 @@ docker system prune -a --volumes
 - [ ] Docker Desktop installed and running
 - [ ] Project files created
 - [ ] `docker compose up --build` completed successfully
-- [ ] Ollama model pulled (`qwen2.5:0.5b`)
+- [ ] Ollama model pulled (`llama3.2`)
 - [ ] All containers showing "healthy" status
 - [ ] Frontend accessible at http://localhost:3000
 - [ ] Backend API responding at http://localhost:5000/health

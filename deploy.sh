@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# HealthX Git Deployment Script
+# Lifexia Git Deployment Script
 # This script automates pulling the latest code and restarting the production containers.
 
 set -e
 
-echo "🚀 Starting HealthX Deployment..."
+echo "🚀 Starting Lifexia Deployment..."
 
 # 1. Pull latest changes
 echo "📥 Pulling latest code from Git..."

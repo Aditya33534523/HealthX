@@ -5,8 +5,8 @@ from config import Config
 class OllamaClient:
     def __init__(self):
         self.host = Config.OLLAMA_HOST
-        self.model = "qwen2.5:0.5b"  # ← force it here temporarily
-        print(f"✅ Ollama initialized: {self.host} with model {self.model} (HARDCODED)")
+        self.model = Config.OLLAMA_MODEL  # Respect the config/env file
+        print(f"✅ Ollama initialized: {self.host} with model {self.model}")
 
     def generate(self, prompt, system_prompt="", context=""):
         """Generate response using Ollama"""

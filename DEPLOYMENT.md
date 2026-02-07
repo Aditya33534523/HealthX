@@ -1,6 +1,6 @@
-# Deployment Guide for HealthX 🚀
+# Deployment Guide for Lifexia 🚀
 
-This guide provides step-by-step instructions for deploying the HealthX application on a web server.
+This guide provides step-by-step instructions for deploying the Lifexia application on a web server.
 
 ---
 

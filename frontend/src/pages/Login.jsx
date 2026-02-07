@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Activity } from 'lucide-react';
 import api from '../utils/api';
 
 const Login = () => {
@@ -38,69 +38,81 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden flex flex-col">
-            {/* Full screen background image */}
-            <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{
-                    backgroundImage: 'url(/lifexia-logo.png)',
-                }}
-            />
-            {/* Dark gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-black/80 via-slate-900/70 to-black/80" />
+        <div className="min-h-screen relative overflow-hidden flex flex-col font-['Outfit']">
+            {/* Dynamic Background */}
+            <div className="vibrant-bg" />
 
-            {/* Netflix-style Header with Logo */}
-            <header className="relative z-20 px-6 md:px-12 py-6">
-                <div className="flex items-center gap-3">
-                    <img
-                        src="/logo.jpg"
-                        alt="Lifexia"
-                        className="w-12 h-12 md:w-14 md:h-14 rounded-lg object-cover shadow-lg ring-2 ring-white/20"
-                    />
-                    <h1 className="text-3xl md:text-4xl font-bold text-emerald-400 tracking-tight drop-shadow-lg" style={{ fontFamily: "'Inter', sans-serif" }}>
-                        Lifexia
-                    </h1>
+            {/* Decorative Floating Pills (CSS-based) */}
+            <div className="absolute top-[10%] left-[5%] w-16 h-8 bg-blue-500/20 rounded-full blur-xl animate-pulse float" style={{ animationDelay: '0s' }} />
+            <div className="absolute top-[20%] right-[10%] w-12 h-24 bg-purple-500/20 rounded-full blur-xl animate-bounce float" style={{ animationDelay: '1s' }} />
+            <div className="absolute bottom-[15%] left-[15%] w-20 h-10 bg-emerald-500/20 rounded-full blur-xl float" style={{ animationDelay: '2.5s' }} />
+            <div className="absolute top-[60%] right-[5%] w-16 h-16 bg-blue-400/10 rounded-full blur-2xl float" style={{ animationDuration: '8s' }} />
+
+            {/* Header */}
+            <header className="relative z-20 px-6 md:px-12 py-8 flex justify-between items-center">
+                <div className="flex items-center gap-4 group">
+                    <div className="p-2.5 glass-panel group-hover:scale-110 group-hover:rotate-6">
+                        <img
+                            src="/logo.jpg"
+                            alt="Lifexia"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-xl object-cover"
+                        />
+                    </div>
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                            lifexia
+                        </h1>
+                        <p className="text-[10px] text-blue-400 font-bold uppercase tracking-[4px] -mt-1">LIFEXIA AI</p>
+                    </div>
+                </div>
+                <div className="hidden md:flex gap-6">
+                    <button className="text-sm font-medium text-slate-300 hover:text-white transition-colors">How it works</button>
+                    <button className="text-sm font-medium dark-glass-btn px-6 py-2 rounded-full border border-white/10 hover:bg-white/5">Help</button>
                 </div>
             </header>
 
-            {/* Login Form - Glass Effect */}
-            <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-8">
-                <div className="w-full max-w-md backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl p-8 md:p-12 shadow-2xl shadow-black/50">
-                    <h2 className="text-3xl font-bold text-white mb-2">
-                        {isRegister ? 'Create Account' : 'Welcome Back'}
-                    </h2>
-                    <p className="text-white/60 mb-8">
-                        {isRegister ? 'Join Lifexia for personalized health assistance' : 'Sign in to access your AI health assistant'}
-                    </p>
+            {/* Login Form */}
+            <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-12">
+                <div className="relative glass-card p-10 md:p-14 w-full max-w-lg border-white/5 backdrop-blur-3xl bg-slate-950/40">
+                    <div className="absolute inset-0 bg-blue-900/20 blur-[120px] rounded-full" />
+                    <div className="flex flex-col items-center mb-10">
+                        <div className="w-20 h-20 bg-blue-500/10 rounded-3xl flex items-center justify-center mb-6 border border-white/10 shadow-2xl shadow-blue-500/20 float">
+                            <Activity size={40} className="text-blue-400" />
+                        </div>
+                        <h1 className="text-4xl font-black text-white tracking-tight mb-2">{isRegister ? 'Create Account' : 'Sign In'}</h1>
+                        <p className="text-slate-400 text-sm font-medium">
+                            {isRegister ? 'Start your journey with Lifexia AI' : 'Continue to your health portal'}
+                        </p>
+                    </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
-                        <div>
-                            <label className="block text-white/70 text-sm font-medium mb-2">Email</label>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="block text-slate-300 text-sm font-bold ml-1">Work Email</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-4 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 placeholder-white/40 transition-all hover:bg-white/15"
+                                className="glass-input"
                                 placeholder="name@example.com"
                                 required
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-white/70 text-sm font-medium mb-2">Password</label>
+                        <div className="space-y-2">
+                            <label className="block text-slate-300 text-sm font-bold ml-1">Pass-code</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white px-4 py-4 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 placeholder-white/40 transition-all hover:bg-white/15"
+                                className="glass-input"
                                 placeholder="••••••••"
                                 required
                             />
                         </div>
 
                         {error && (
-                            <div className="bg-red-500/20 backdrop-blur-sm border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                                <AlertCircle size={16} />
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-5 py-4 rounded-2xl text-sm flex items-center gap-3 animate-head-shake">
+                                <AlertCircle size={18} />
                                 {error}
                             </div>
                         )}
@@ -108,34 +120,43 @@ const Login = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-emerald-600/90 hover:bg-emerald-500 backdrop-blur-sm text-white font-semibold py-4 rounded-xl text-base transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-emerald-500/30 hover:scale-[1.02] active:scale-[0.98]"
+                            className="glass-btn w-full mt-4"
                         >
-                            {loading ? (isRegister ? 'Creating Account...' : 'Signing In...') : (isRegister ? 'Sign Up' : 'Sign In')}
+                            {loading
+                                ? (isRegister ? 'Creating Account...' : 'Authenticating...')
+                                : (isRegister ? 'Create Account' : 'Sign In')}
                         </button>
                     </form>
 
                     <div className="mt-8 text-center">
-                        <p className="text-white/60 text-base">
-                            {isRegister ? 'Already have an account? ' : 'New to Lifexia? '}
-                            <span
-                                className="text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer font-medium transition-colors"
+                        <p className="text-slate-400 text-sm">
+                            {isRegister ? 'Already have an account? ' : "Don't have an account? "}
+                            <button
+                                className="text-white hover:text-blue-400 font-bold transition-all underline underline-offset-4 decoration-blue-500/30"
                                 onClick={() => { setIsRegister(!isRegister); setError(''); }}
+                                type="button"
                             >
-                                {isRegister ? 'Sign in' : 'Sign up now'}
-                            </span>
+                                {isRegister ? 'Sign In' : 'Sign Up'}
+                            </button>
                         </p>
                     </div>
                 </div>
             </main>
 
             {/* Footer */}
-            <footer className="relative z-10 py-6 px-6 md:px-12">
-                <p className="text-white/30 text-sm text-center">
-                    © 2026 Lifexia. AI Health Assistant. All rights reserved.
+            <footer className="relative z-10 py-8 px-6 md:px-12 flex flex-col md:flex-row justify-between items-center gap-4 grayscale opacity-50">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    © 2026 lifexia intelligent systems
                 </p>
+                <div className="flex gap-8 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <button className="hover:text-white transition-colors">Privacy</button>
+                    <button className="hover:text-white transition-colors">Terms</button>
+                    <button className="hover:text-white transition-colors">Clinical Ethics</button>
+                </div>
             </footer>
         </div>
     );
 };
+
 
 export default Login;

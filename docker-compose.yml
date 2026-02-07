@@ -2,18 +2,18 @@ services:
   # MongoDB Database
   mongodb:
     image: mongo:7.0
-    container_name: pharmacare-mongodb
+    container_name: lifexia-mongodb
     restart: always
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: pharmacare123
-      MONGO_INITDB_DATABASE: pharma_chatbot
+      MONGO_INITDB_ROOT_PASSWORD: lifexia123
+      MONGO_INITDB_DATABASE: lifexia_chatbot
     volumes:
       - mongodb_data:/data/db
     networks:
-      - pharmacare-network
+      - lifexia-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -24,14 +24,14 @@ services:
   # Ollama AI Service - FIXED VERSION
   ollama:
     image: ollama/ollama:latest
-    container_name: pharmacare-ollama
+    container_name: lifexia-ollama
     restart: always
     ports:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
     networks:
-      - pharmacare-network
+      - lifexia-network
     # Simplified healthcheck - just check if port is responding
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:11434 || exit 1" ]
@@ -45,14 +45,14 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pharmacare-backend
+    container_name: lifexia-backend
     restart: always
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=${MONGO_URI}
       - OLLAMA_HOST=http://ollama:11434
-      - OLLAMA_MODEL=kimi-k2.5:cloud
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
       - FLASK_ENV=${FLASK_ENV}
       - SECRET_KEY=${SECRET_KEY}
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
@@ -64,7 +64,7 @@ services:
       ollama:
         condition: service_started # Changed from service_healthy
     networks:
-      - pharmacare-network
+      - lifexia-network
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
@@ -77,7 +77,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: pharmacare-frontend
+    container_name: lifexia-frontend
     restart: always
     ports:
       - "3000:3000"
@@ -89,10 +89,10 @@ services:
     depends_on:
       - backend
     networks:
-      - pharmacare-network
+      - lifexia-network
 
 networks:
-  pharmacare-network:
+  lifexia-network:
     driver: bridge
 
 volumes:

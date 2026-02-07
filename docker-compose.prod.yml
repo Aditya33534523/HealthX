@@ -35,17 +35,17 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: healthx-frontend-prod
+    container_name: lifexia-frontend-prod
     restart: always
     ports:
       - "80:80"
     depends_on:
       - backend
     networks:
-      - healthx-prod-network
+      - lifexia-prod-network
 
 networks:
-  healthx-prod-network:
+  lifexia-prod-network:
     driver: bridge
 
 volumes:

@@ -31,7 +31,7 @@ const MainLayout = () => {
                         <img src={logo} alt="Lifexia" className="w-full h-full object-cover" />
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold">Lifexia</h1>
+                        <h1 className="text-xl font-bold">LIFEXIA</h1>
                         <p className="text-xs text-slate-300">AI Health Assistant</p>
                     </div>
                 </div>

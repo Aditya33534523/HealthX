@@ -8,7 +8,7 @@ class Config:
     # MongoDB Configuration
     MONGO_URI = os.getenv(
         "MONGO_URI",
-        "mongodb://admin:pharmacare123@mongodb:27017/pharma_chatbot?authSource=admin",
+        "mongodb://admin:lifexia123@mongodb:27017/lifexia_chatbot?authSource=admin",
     )
 
     # Flask Configuration
@@ -17,7 +17,7 @@ class Config:
 
     # Ollama AI Configuration
     OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://ollama:11434")
-    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:0.5b")
+    OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 
     # Twilio WhatsApp Configuration
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
