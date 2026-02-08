@@ -9,9 +9,11 @@ def whatsapp_webhook():
     """Handle incoming WhatsApp messages from Twilio"""
     try:
         # Twilio sends form-encoded data
+        print(f"DEBUG: Webhook hit! Values: {request.values}")
         sender = request.values.get('From', 'Unknown')
         body = request.values.get('Body', '')
         
+        print(f"DEBUG: Processing message from {sender}: {body}")
         if body:
             log_whatsapp_message(sender, body, source="Twilio")
             print(f"📩 WhatsApp received from {sender}: {body}")

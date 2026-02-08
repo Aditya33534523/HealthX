@@ -1,6 +1,8 @@
 from datetime import datetime
 from models.database import drugs_collection, db
 from models.user import create_user
+from models.log import subscribe_user
+from config import Config
 
 
 def initialize_drug_database():
@@ -260,3 +262,8 @@ def initialize_drug_database():
         print("✅ Admin user created: admin@lifexia.local / admin123")
     else:
         print("ℹ️  Admin user already exists")
+
+    # Auto-subscribe test number if provided
+    if Config.TEST_WHATSAPP_TO:
+        subscribe_user(Config.TEST_WHATSAPP_TO)
+        print(f"✅ Test number {Config.TEST_WHATSAPP_TO} auto-subscribed for broadcasting")

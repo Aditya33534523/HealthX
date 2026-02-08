@@ -21,14 +21,17 @@ def get_login_history(user_id):
         for log in logs
     ]
 
+
 def log_whatsapp_message(sender, message, source="User"):
-    """Log an incoming WhatsApp message"""
+    """Log an incoming WhatsApp message and subscribe the user"""
     db.whatsapp_logs.insert_one({
         "sender": sender,
         "message": message,
         "source": source,
         "timestamp": datetime.utcnow()
     })
+    # Auto-subscribe users who message the bot
+    subscribe_user(sender)
 
 def get_whatsapp_messages():
     """Get all WhatsApp messages (for admin)"""
@@ -42,3 +45,27 @@ def get_whatsapp_messages():
         }
         for log in logs
     ]
+
+def subscribe_user(phone):
+    """Add a phone number to the subscribers list if not already present"""
+    if not phone:
+        return
+    
+    # Ensure phone starts with whatsapp: for Twilio consistency if it looks like a number
+    if not phone.startswith("whatsapp:") and (phone.startswith("+") or phone.isdigit()):
+        phone = f"whatsapp:{phone}"
+        
+    db.subscribers.update_one(
+        {"phone": phone},
+        {"$set": {"last_seen": datetime.utcnow()}, "$setOnInsert": {"subscribed_at": datetime.utcnow()}},
+        upsert=True
+    )
+
+def get_subscribers():
+    """Get all subscribed WhatsApp numbers"""
+    subscribers = db.subscribers.find()
+    return [s for s in subscribers]
+
+def get_unique_senders_count():
+    """Get total count of unique WhatsApp members"""
+    return db.subscribers.count_documents({})

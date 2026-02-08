@@ -17,6 +17,7 @@ const Admin = () => {
     const [sentBroadcasts, setSentBroadcasts] = useState([]);
     const [showBroadcastAlert, setShowBroadcastAlert] = useState(false);
     const [latestBroadcast, setLatestBroadcast] = useState(null);
+    const [subscriberCount, setSubscriberCount] = useState(0);
 
     const fetchMessages = async () => {
         try {
@@ -29,48 +30,73 @@ const Admin = () => {
         }
     };
 
+    const fetchStats = async () => {
+        try {
+            const res = await api.get('/broadcast/stats');
+            if (res.data.success) {
+                setSubscriberCount(res.data.subscriber_count);
+            }
+        } catch (error) {
+            console.error("Error fetching broadcast stats:", error);
+        }
+    };
+
     useEffect(() => {
-        // Mock mode: Disable live fetch to show realistic logs
-        // fetchMessages(); 
-        // const interval = setInterval(fetchMessages, 10000);
-        // return () => clearInterval(interval);
+        fetchMessages();
+        fetchStats();
+        const interval = setInterval(() => {
+            fetchMessages();
+            fetchStats();
+        }, 15000);
+        return () => clearInterval(interval);
     }, []);
 
     const sendBroadcast = async () => {
         if (!broadcastMsg.trim()) return;
-        setStatus('Sending...');
+        setStatus('Transmitting...');
 
-        const newBroadcast = {
-            message: broadcastMsg,
-            source: source,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            date: new Date().toLocaleDateString()
-        };
-
-        // Mock broadcast for demo
-        setTimeout(() => {
-            setStatus('✅ Broadcast Sent Successfully!');
-            setLatestBroadcast(newBroadcast);
-            setSentBroadcasts(prev => [newBroadcast, ...prev]);
-
-            // Add broadcast to inbox as a sent message
-            const inboxMessage = {
-                sender: `📢 BROADCAST - ${source}`,
+        try {
+            const res = await api.post('/broadcast', {
                 message: broadcastMsg,
-                timestamp: newBroadcast.timestamp,
-                isBroadcast: true
-            };
-            setMessages(prev => [inboxMessage, ...prev]);
+                source: source
+            });
 
-            setShowBroadcastAlert(true);
-            setBroadcastMsg('');
+            if (res.data.success) {
+                const newBroadcast = {
+                    message: broadcastMsg,
+                    source: source,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                    date: new Date().toLocaleDateString(),
+                    sent_count: res.data.sent_count
+                };
 
-            // Hide alert after 5 seconds
-            setTimeout(() => {
-                setShowBroadcastAlert(false);
-                setStatus('');
-            }, 5000);
-        }, 1000);
+                setStatus(`✅ Signal Transmitted to ${res.data.sent_count} members!`);
+                setLatestBroadcast(newBroadcast);
+                setSentBroadcasts(prev => [newBroadcast, ...prev]);
+
+                // Add to messages log for visibility
+                const inboxMessage = {
+                    sender: `📢 BROADCAST - ${source}`,
+                    message: broadcastMsg,
+                    timestamp: newBroadcast.timestamp,
+                    isBroadcast: true
+                };
+                setMessages(prev => [inboxMessage, ...prev]);
+
+                setShowBroadcastAlert(true);
+                setBroadcastMsg('');
+
+                setTimeout(() => {
+                    setShowBroadcastAlert(false);
+                    setStatus('');
+                }, 5000);
+            } else {
+                setStatus(`❌ Transmission Failed: ${res.data.error}`);
+            }
+        } catch (error) {
+            console.error("Broadcast error:", error);
+            setStatus(`❌ Error: ${error.response?.data?.error || 'Network error'}`);
+        }
     };
 
     return (
@@ -134,7 +160,7 @@ const Admin = () => {
                             <div className="absolute inset-0 bg-red-600 blur-lg group-hover:blur-xl transition-all opacity-40" />
                             <div className="relative glass-btn bg-red-600/80 hover:bg-red-600 border-none shadow-red-600/20">
                                 <Bell size={18} />
-                                <span className="uppercase tracking-widest font-black text-xs">Transmit to all users</span>
+                                <span className="uppercase tracking-widest font-black text-xs">Transmit to {subscriberCount} members</span>
                             </div>
                         </button>
                         {status && (

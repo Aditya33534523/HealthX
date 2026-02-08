@@ -23,6 +23,8 @@ class Config:
     TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
     TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
     TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
+    TWILIO_WHATSAPP_FROM = TWILIO_WHATSAPP_NUMBER  # Alias for backward compatibility
+    TEST_WHATSAPP_TO = os.getenv("TEST_WHATSAPP_TO")
 
     # Google OAuth Configuration
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
